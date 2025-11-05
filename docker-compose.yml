@@ -1,0 +1,104 @@
+name: simple
+
+services:
+  app:
+    build: ./app
+    container_name: simple-app
+    ports:
+      - "5050:3000"
+    volumes:
+      - vol-simple:/app/public/images/
+    networks:
+      - jenkins-net
+    restart: unless-stopped
+
+  sonarqube:
+    image: sonarqube:9.9.1-community
+    container_name: simple-sonarqube
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "9000:9000"
+    environment:
+      - SONAR_JDBC_URL=jdbc:postgresql://db:5432/sonar
+      - SONAR_JDBC_USERNAME=sonar
+      - SONAR_JDBC_PASSWORD=sonar
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+    networks:
+      - jenkins-net
+    restart: unless-stopped
+
+  db:
+    image: postgres:15
+    container_name: simple-db
+    environment:
+      - POSTGRES_USER=sonar
+      - POSTGRES_PASSWORD=sonar
+      - POSTGRES_DB=sonar
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sonar"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - jenkins-net
+    restart: unless-stopped
+
+  jenkins:
+    build: ./jenkins
+    container_name: simple-jenkins
+    user: root
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    networks:
+      - jenkins-net
+    restart: unless-stopped
+
+  agent:
+    build: ./jenkins-agent
+    container_name: simple-agent
+    user: root
+    depends_on:
+      - jenkins
+    environment:
+      - JENKINS_URL=http://jenkins:8080
+      - JENKINS_AGENT_NAME=devops1-agent
+      - JENKINS_AGENT_WORKDIR=/home/jenkins/agent
+      - JENKINS_SECRET=4098d931ffafebc37f9daa039f86ccbd1c8808bdc0473b93735020ce7cee9108
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - agent_workspace:/home/jenkins/agent
+    networks:
+      - jenkins-net
+    restart: unless-stopped
+
+volumes:
+  vol-simple:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
+  postgres_data:
+  jenkins_home:
+  agent_workspace:
+
+networks:
+  jenkins-net:
+    driver: bridge
