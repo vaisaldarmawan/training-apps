@@ -5,8 +5,8 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "test": "jest --forceExit testing/",
-    "test:coverage": "jest --coverage --forceExit testing/"
+    "test": "NODE_ENV=test jest --forceExit testing/",
+    "test:coverage": "NODE_ENV=test jest --coverage --forceExit testing/"
   },
   "author": "",
   "license": "ISC",

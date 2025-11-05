@@ -19,10 +19,10 @@ app.use('/', express.static(path.join(__dirname, 'public')));
 
 // Environment variables
 const PORT = process.env.APP_PORT || 3000;
-const SECRET_KEY = process.env.SECRET_KEY;
+const SECRET_KEY = process.env.SECRET_KEY || 'default-secret-key-for-testing';
 
-if (!SECRET_KEY) {
-  console.error('ERROR: SECRET_KEY must be defined in environment variables');
+if (!process.env.SECRET_KEY && process.env.NODE_ENV === 'production') {
+  console.error('ERROR: SECRET_KEY must be defined in environment variables for production');
   process.exit(1);
 }
 
@@ -107,8 +107,13 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server successfully started on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-});
+// Start server only if not in test mode
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    console.log(`Server successfully started on port ${PORT}`);
+    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  });
+}
+
+// Export app for testing
+module.exports = app;
