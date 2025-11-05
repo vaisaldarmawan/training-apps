@@ -44,7 +44,7 @@ pipeline {
                             -Dsonar.projectKey=simple-apps \
                             -Dsonar.sources=. \
                             -Dsonar.host.url=http://sonarqube:9000 \
-                            -Dsonar.login=
+                            -Dsonar.login=sqa_855eeb7a69bd11f2287cc91f7fb05e73ff7d1327
                     '''
                 }
             }
