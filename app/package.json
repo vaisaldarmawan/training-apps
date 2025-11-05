@@ -2,15 +2,23 @@
   "name": "training-apps",
   "version": "1.0.0",
   "description": "Training Apps Project",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
-    "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node app.js",
+    "test": "jest --forceExit testing/",
+    "test:coverage": "jest --coverage --forceExit testing/"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "express": "^4.18.2",
-    "dotenv": "^16.3.1"
+    "dotenv": "^16.3.1",
+    "moment": "^2.29.4",
+    "mysql": "^2.18.1"
+  },
+  "devDependencies": {
+    "jest": "^29.5.0",
+    "supertest": "^6.3.3",
+    "babel-jest": "^29.5.0"
   }
 }
